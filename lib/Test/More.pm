@@ -8,7 +8,7 @@ require Test::Simple;
 
 require Exporter;
 use vars qw($VERSION @ISA @EXPORT);
-$VERSION = '0.02';
+$VERSION = '0.03';
 @ISA    = qw(Exporter);
 @EXPORT = qw(ok use_ok require_ok
              is isnt like
@@ -32,8 +32,19 @@ sub import {
         Test::Simple->import($plan => $number);
     }
 
-    __PACKAGE__->export_to_level(1, __PACKAGE__);
+    __PACKAGE__->_export_to_level(1, __PACKAGE__);
 }
+
+# 5.004's Exporter doesn't have export_to_level.
+sub _export_to_level
+{
+      my $pkg = shift;
+      my $level = shift;
+      (undef) = shift;                  # XXX redundant arg
+      my $callpkg = caller($level);
+      $pkg->export($callpkg, @_);
+}
+
 
 =head1 NAME
 
@@ -43,11 +54,11 @@ Test::More - yet another framework for writing test scripts
 
   use Test::More tests => $Num_Tests;
   # or
-  use Test::More no_plan;       # UNIMPLEMENTED!!!
+  use Test::More qw(no_plan);       # UNIMPLEMENTED!!!
   # or
-  use Test::More skip_all;
+  use Test::More qw(skip_all);
 
-  use_ok( 'Some::Module' );
+  BEGIN { use_ok( 'Some::Module' ); }
   require_ok( 'Some::Module' );
 
   # Various ways to say "ok"
@@ -241,7 +252,7 @@ which is an alias of isnt().
 
 =cut
 
-sub is {
+sub is ($$;$) {
     my($this, $that, $name) = @_;
 
     my $ok = ok($this eq $that, $name);
@@ -257,7 +268,7 @@ DIAGNOSTIC
     return $ok;
 }
 
-sub isnt {
+sub isnt ($$;$) {
     my($this, $that, $name) = @_;
 
     my $ok = ok($this ne $that, $name);
@@ -306,12 +317,12 @@ diagnostics on failure.
 
 =cut
 
-sub like {
+sub like ($$;$) {
     my($this, $regex, $name) = @_;
 
     my $ok = 0;
     if( ref $regex eq 'Regexp' ) {
-        $ok = ok( $this =~ $regex, $name );
+        $ok = ok( $this =~ $regex ? 1 : 0, $name );
     }
     # Check if it looks like '/foo/i'
     elsif( my($re, $opts) = $regex =~ m{^ /(.*)/ (\w*) $ }sx ) {
@@ -353,12 +364,12 @@ Use these very, very, very sparingly.
 
 =cut
 
-sub pass {
+sub pass ($) {
     my($name) = shift;
     ok(1, $name);
 }
 
-sub fail {
+sub fail ($) {
     my($name) = shift;
     ok(0, $name);
 }
@@ -382,11 +393,12 @@ C<use_ok> and C<require_ok>.
 
 These simply use or require the given $module and test to make sure
 the load happened ok.  Its recommended that you run use_ok() inside a
-BEGIN block so its functions are exported at compile-time.
+BEGIN block so its functions are exported at compile-time and
+prototypes are properly honored.
 
 =cut
 
-sub use_ok {
+sub use_ok ($) {
     my($module) = shift;
 
     my $pack = caller;
@@ -411,7 +423,7 @@ DIAGNOSTIC
 }
 
 
-sub require_ok {
+sub require_ok ($) {
     my($module) = shift;
 
     my $pack = caller;

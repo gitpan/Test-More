@@ -10,7 +10,7 @@ isnt( "foo", "bar",     'foo isnt bar');
 isn't("foo", "bar",     'foo isn\'t bar');
 
 #'#
-like("fooble", '/foo/',    'foo is like fooble');
+like("fooble", '/^foo/',    'foo is like fooble');
 like("FooBle", '/foo/i',   'foo is like FooBle');
 
 pass('pass() passed');

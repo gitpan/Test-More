@@ -71,11 +71,11 @@ ERR
    my $more_err_re = <<ERR;
 # Failed test \\($0 at line 38\\)
 # Tried to use 'Hooble::mooble::yooble'.
-# Error:  Can't locate Hooble.* in \\\@INC \\(\\\@INC contains: .*
+# Error:  Can't locate Hooble.* in \\\@INC .*
 
 # Failed test \\($0 at line 39\\)
 # Tried to require 'ALL::YOUR::BASE::ARE::BELONG::TO::US::wibble'.
-# Error:  Can't locate ALL.* in \\\@INC \\(\\\@INC contains: .*
+# Error:  Can't locate ALL.* in \\\@INC .*
 
 # Looks like you failed 8 tests of 8.
 ERR

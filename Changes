@@ -1,5 +1,9 @@
 Revision history for Perl extension Test::More.
 
+0.04  Thu Jun  7 11:26:18 BST 2001
+    - minor bug in eq_set() with complex data structures
+      Thanks to Tatsuhiko Miyagawa for finding this.
+
 0.03  Tue Jun  5 19:59:59 BST 2001
     - Fixed export problem in 5.004.
     - prototyped the functions properly

@@ -8,7 +8,7 @@ require Test::Simple;
 
 require Exporter;
 use vars qw($VERSION @ISA @EXPORT);
-$VERSION = '0.03';
+$VERSION = '0.04';
 @ISA    = qw(Exporter);
 @EXPORT = qw(ok use_ok require_ok
              is isnt like
@@ -606,12 +606,17 @@ applies to the top level.
 
 =cut
 
+# We must make sure that references are treated neutrally.  It really
+# doesn't matter how we sort them, as long as both arrays are sorted
+# with the same algorithm.
+my $bogus_sort = sub { ref $a ? 0 : $a cmp $b };
+
 sub eq_set  {
     my($a1, $a2) = @_;
     return 0 unless @$a1 == @$a2;
 
     # There's faster ways to do this, but this is easiest.
-    return eq_array( [sort @$a1], [sort @$a2] );
+    return eq_array( [sort $bogus_sort @$a1], [sort $bogus_sort @$a2] );
 }
 
 

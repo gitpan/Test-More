@@ -1,5 +1,11 @@
 Revision history for Perl extension Test::More.
 
+0.06  Fri Jun 15 14:39:50 EDT 2001
+    - Guarding against $/ and -l
+    - Reformatted the way failed tests are reported to make them stand out
+      a bit better.
+    - Fixed tests without names
+
 0.05  Tue Jun 12 16:16:55 EDT 2001
     * use Test::More no_plan; implemented
 

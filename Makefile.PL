@@ -27,7 +27,7 @@ CHANGE_WARN
 WriteMakefile(
     NAME            => $PACKAGE,
     VERSION_FROM    => "lib/$PACKAGE_FILE.pm", # finds $VERSION
-    PREREQ_PM       => { Test::Simple   => 0.07,
+    PREREQ_PM       => { Test::Simple   => 0.08,
                          Test::Harness  => 1.21,
                        },
     'dist'          => { COMPRESS   => 'gzip -9',

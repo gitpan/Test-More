@@ -49,9 +49,9 @@ not ok 1 - is foo like that
 OUT
 
     my $err_re = <<ERR;
-# Failed test \\(.*\\)
-#               'foo'
-# doesn't match '\\(\\?-xism:that\\)'
+#     Failed test \\(.*\\)
+#                   'foo'
+#     doesn't match '\\(\\?-xism:that\\)'
 # Looks like you failed 1 tests of 1\\.
 ERR
 

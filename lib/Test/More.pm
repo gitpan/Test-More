@@ -2,13 +2,27 @@ package Test::More;
 
 use strict;
 
-require Test::Simple;
-*TESTOUT = \*Test::Simple::TESTOUT;
-*TESTERR = \*Test::Simple::TESTERR;
+
+# Special print function to guard against $\ and -l munging.
+sub _print (*@) {
+    my($fh, @args) = @_;
+
+    local $\;
+    print $fh @args;
+}
+
+sub print { die "DON'T USE PRINT!  Use _print instead" }
+
+
+BEGIN {
+    require Test::Simple;
+    *TESTOUT = \*Test::Simple::TESTOUT;
+    *TESTERR = \*Test::Simple::TESTERR;
+}
 
 require Exporter;
 use vars qw($VERSION @ISA @EXPORT);
-$VERSION = '0.05';
+$VERSION = '0.06';
 @ISA    = qw(Exporter);
 @EXPORT = qw(ok use_ok require_ok
              is isnt like
@@ -17,12 +31,13 @@ $VERSION = '0.05';
              eq_array eq_hash eq_set
             );
 
+
 sub import {
     my($class, $plan, @args) = @_;
 
     if( $plan eq 'skip_all' ) {
         $Test::Simple::Skip_All = 1;
-        print TESTOUT "1..0\n";
+        _print *TESTOUT, "1..0\n";
         exit(0);
     }
     else {
@@ -182,7 +197,7 @@ but we B<very> strongly encourage its use.
 Should an ok() fail, it will produce some diagnostics:
 
     not ok 18 - sufficient mucus
-    # Failed test 18 (foo.t at line 42)
+    #     Failed test 18 (foo.t at line 42)
 
 This is actually Test::Simple's ok() routine.
 
@@ -225,9 +240,9 @@ isnt() know what the test was and why it failed.  For example this
 Will produce something like this:
 
     not ok 17 - Is foo the same as bar?
-    # Failed test 1 (foo.t at line 139)
-    #      got: 'waffle'
-    # expected: 'yarblokos'
+    #     Failed test 1 (foo.t at line 139)
+    #          got: 'waffle'
+    #     expected: 'yarblokos'
 
 So you can figure out what went wrong without rerunning the test.
 
@@ -252,12 +267,13 @@ which is an alias of isnt().
 sub is ($$;$) {
     my($this, $that, $name) = @_;
 
-    my $ok = ok($this eq $that, $name);
+    my $ok = @_ == 3 ? ok($this eq $that, $name)
+                     : ok($this eq $that);
 
     unless( $ok ) {
-        print TESTERR <<DIAGNOSTIC;
-#      got: '$this'
-# expected: '$that'
+        _print *TESTERR, <<DIAGNOSTIC;
+#          got: '$this'
+#     expected: '$that'
 DIAGNOSTIC
 
     }
@@ -268,12 +284,13 @@ DIAGNOSTIC
 sub isnt ($$;$) {
     my($this, $that, $name) = @_;
 
-    my $ok = ok($this ne $that, $name);
+    my $ok = @_ == 3 ? ok($this ne $that, $name)
+                     : ok($this ne $that);
 
     unless( $ok ) {
-        print TESTERR <<DIAGNOSTIC;
-# it should not be '$that'
-# but it is.
+        _print *TESTERR, <<DIAGNOSTIC;
+#     it should not be '$that'
+#     but it is.
 DIAGNOSTIC
 
     }
@@ -305,7 +322,7 @@ regex reference (ie. qr//) or (for better compatibility with older
 perls) as a string that looks like a regex (alternative delimiters are
 currently not supported):
 
-    like( $this, '/that/' );
+    like( $this, '/that/', 'this is like that' );
 
 Regex options may be placed on the end (C<'/that/i'>).
 
@@ -319,24 +336,30 @@ sub like ($$;$) {
 
     my $ok = 0;
     if( ref $regex eq 'Regexp' ) {
-        $ok = ok( $this =~ $regex ? 1 : 0, $name );
+        $ok = @_ == 3 ? ok( $this =~ $regex ? 1 : 0, $name )
+                      : ok( $this =~ $regex ? 1 : 0 );
     }
     # Check if it looks like '/foo/i'
     elsif( my($re, $opts) = $regex =~ m{^ /(.*)/ (\w*) $ }sx ) {
-        $ok = ok( $this =~ /(?$opts)$re/ ? 1 : 0, $name );
+        $ok = @_ == 3 ? ok( $this =~ /(?$opts)$re/ ? 1 : 0, $name )
+                      : ok( $this =~ /(?$opts)$re/ ? 1 : 0 );
     }
     else {
-        print TESTERR <<ERR;
-# '$regex' doesn't look much like a regex to me.  Failing the test.
+        # Can't use fail() here, the call stack will be fucked.
+        my $ok = @_ == 3 ? ok(0, $name )
+                         : ok(0);
+
+        _print *TESTERR, <<ERR;
+#     '$regex' doesn't look much like a regex to me.  Failing the test.
 ERR
 
-        return fail( $name );
+        return $ok;
     }
 
     unless( $ok ) {
-        print TESTERR <<DIAGNOSTIC;
-#               '$this'
-# doesn't match '$regex'
+        _print *TESTERR, <<DIAGNOSTIC;
+#                   '$this'
+#     doesn't match '$regex'
 DIAGNOSTIC
 
     }
@@ -362,13 +385,15 @@ Use these very, very, very sparingly.
 =cut
 
 sub pass ($) {
-    my($name) = shift;
-    ok(1, $name);
+    my($name) = @_;
+    return @_ == 1 ? ok(1, $name)
+                   : ok(1);
 }
 
 sub fail ($) {
-    my($name) = shift;
-    ok(0, $name);
+    my($name) = @_;
+    return @_ == 1 ? ok(0, $name)
+                   : ok(0);
 }
 
 =back
@@ -409,9 +434,9 @@ USE
     my $ok = ok( !$@, "use $module;" );
 
     unless( $ok ) {
-        print TESTERR <<DIAGNOSTIC;
-# Tried to use '$module'.
-# Error:  $@
+        _print *TESTERR, <<DIAGNOSTIC;
+#     Tried to use '$module'.
+#     Error:  $@
 DIAGNOSTIC
 
     }
@@ -433,9 +458,9 @@ REQUIRE
     my $ok = ok( !$@, "require $module;" );
 
     unless( $ok ) {
-        print TESTERR <<DIAGNOSTIC;
-# Tried to require '$module'.
-# Error:  $@
+        _print *TESTERR, <<DIAGNOSTIC;
+#     Tried to require '$module'.
+#     Error:  $@
 DIAGNOSTIC
 
     }
@@ -627,7 +652,7 @@ todo() and skip() are unimplemented.
 
 The no_plan feature depends on new Test::Harness feature.  If you're going
 to distribute tests that use no_plan your end-users will have to upgrade
-Test::Harness.
+Test::Harness to the latest one on CPAN.
 
 =head1 AUTHOR
 

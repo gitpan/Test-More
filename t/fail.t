@@ -52,30 +52,30 @@ not ok 8 - require ALL::YOUR::BASE::ARE::BELONG::TO::US::wibble;
 OUT
 
     my $err_re = <<ERR;
-# Failed test ($0 at line 29)
-# Failed test ($0 at line 30)
-#      got: 'foo'
-# expected: 'bar'
-# Failed test ($0 at line 31)
-# it should not be 'foo'
-# but it is.
-# Failed test ($0 at line 32)
-# it should not be 'foo'
-# but it is.
-# Failed test ($0 at line 34)
-#               'foo'
-# doesn't match '/that/'
-# Failed test ($0 at line 36)
+#     Failed test ($0 at line 29)
+#     Failed test ($0 at line 30)
+#          got: 'foo'
+#     expected: 'bar'
+#     Failed test ($0 at line 31)
+#     it should not be 'foo'
+#     but it is.
+#     Failed test ($0 at line 32)
+#     it should not be 'foo'
+#     but it is.
+#     Failed test ($0 at line 34)
+#                   'foo'
+#     doesn't match '/that/'
+#     Failed test ($0 at line 36)
 ERR
 
    my $more_err_re = <<ERR;
-# Failed test \\($0 at line 38\\)
-# Tried to use 'Hooble::mooble::yooble'.
-# Error:  Can't locate Hooble.* in \\\@INC .*
+#     Failed test \\($0 at line 38\\)
+#     Tried to use 'Hooble::mooble::yooble'.
+#     Error:  Can't locate Hooble.* in \\\@INC .*
 
-# Failed test \\($0 at line 39\\)
-# Tried to require 'ALL::YOUR::BASE::ARE::BELONG::TO::US::wibble'.
-# Error:  Can't locate ALL.* in \\\@INC .*
+#     Failed test \\($0 at line 39\\)
+#     Tried to require 'ALL::YOUR::BASE::ARE::BELONG::TO::US::wibble'.
+#     Error:  Can't locate ALL.* in \\\@INC .*
 
 # Looks like you failed 8 tests of 8.
 ERR

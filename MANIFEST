@@ -1,0 +1,8 @@
+Changes
+MANIFEST
+Makefile.PL
+lib/Test/More.pm
+t/Catch.pm
+t/More.t
+t/fail.t
+t/skipall.t

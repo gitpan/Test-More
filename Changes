@@ -1,5 +1,10 @@
 Revision history for Perl extension Test::More.
 
+0.07  Wed Jun 27 03:06:56 EDT 2001
+    - VMS and Win32 fixes.  Nothing was actually wrong, but the tests
+      had little problems.
+    - like()'s failure report wasn't always accurate
+
 0.06  Fri Jun 15 14:39:50 EDT 2001
     - Guarding against $/ and -l
     - Reformatted the way failed tests are reported to make them stand out

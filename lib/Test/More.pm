@@ -22,7 +22,7 @@ BEGIN {
 
 require Exporter;
 use vars qw($VERSION @ISA @EXPORT);
-$VERSION = '0.06';
+$VERSION = '0.07';
 @ISA    = qw(Exporter);
 @EXPORT = qw(ok use_ok require_ok
              is isnt like
@@ -66,7 +66,7 @@ Test::More - yet another framework for writing test scripts
 
   use Test::More tests => $Num_Tests;
   # or
-  use Test::More no_plan;
+  use Test::More qw(no_plan);
   # or
   use Test::More qw(skip_all);
 
@@ -126,11 +126,11 @@ There are rare cases when you will not know beforehand how many tests
 your script is going to run.  In this case, you can declare that you
 have no plan.  (Try to avoid using this as it weakens your test.)
 
-  use Test::More no_plan;
+  use Test::More qw(no_plan);
 
 In some cases, you'll want to completely skip an entire testing script.
 
-  use Test::More skip_all;
+  use Test::More qw(skip_all);
 
 Your script will declare a skip and exit immediately with a zero
 (success).  L<Test::Harness> for details.
@@ -510,8 +510,8 @@ sub skip {
   todo BLOCK $how_many, $why;
   todo BLOCK $how_many, $why, $until;
 
-Declares a block of tests as todo and why.  Perhaps its because you
-haven't fixed a bug:
+Declares a block of tests you expect to fail and why.  Perhaps its
+because you haven't fixed a bug:
 
   todo { is( $Gravitational_Constant, 0 ) }  1,
     "Still tinkering with physics --God";
@@ -530,7 +530,7 @@ whole suite dependent on that new feature.
 =cut
 
 sub todo {
-    die "todo() is UNIMPLEMENTED!"
+    die "todo() is UNIMPLEMENTED!";
 }
 
 =head2 Comparision functions

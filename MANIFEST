@@ -6,4 +6,5 @@ t/Catch.pm
 t/More.t
 t/fail.t
 t/fail-like.t
+t/plan_is_noplan.t
 t/skipall.t

@@ -8,7 +8,7 @@ require Test::Simple;
 
 require Exporter;
 use vars qw($VERSION @ISA @EXPORT);
-$VERSION = '0.04';
+$VERSION = '0.05';
 @ISA    = qw(Exporter);
 @EXPORT = qw(ok use_ok require_ok
              is isnt like
@@ -18,18 +18,15 @@ $VERSION = '0.04';
             );
 
 sub import {
-    my($class, $plan, $number) = @_;
+    my($class, $plan, @args) = @_;
 
     if( $plan eq 'skip_all' ) {
         $Test::Simple::Skip_All = 1;
         print TESTOUT "1..0\n";
         exit(0);
     }
-    elsif( $plan eq 'no_plan' ) {
-        die "no_plan not yet implemented";
-    }
     else {
-        Test::Simple->import($plan => $number);
+        Test::Simple->import($plan => @args);
     }
 
     __PACKAGE__->_export_to_level(1, __PACKAGE__);
@@ -54,7 +51,7 @@ Test::More - yet another framework for writing test scripts
 
   use Test::More tests => $Num_Tests;
   # or
-  use Test::More qw(no_plan);       # UNIMPLEMENTED!!!
+  use Test::More no_plan;
   # or
   use Test::More qw(skip_all);
 
@@ -609,14 +606,14 @@ applies to the top level.
 # We must make sure that references are treated neutrally.  It really
 # doesn't matter how we sort them, as long as both arrays are sorted
 # with the same algorithm.
-my $bogus_sort = sub { ref $a ? 0 : $a cmp $b };
+sub _bogus_sort { ref $a ? 0 : $a cmp $b }
 
 sub eq_set  {
     my($a1, $a2) = @_;
     return 0 unless @$a1 == @$a2;
 
     # There's faster ways to do this, but this is easiest.
-    return eq_array( [sort $bogus_sort @$a1], [sort $bogus_sort @$a2] );
+    return eq_array( [sort _bogus_sort @$a1], [sort _bogus_sort @$a2] );
 }
 
 
@@ -626,8 +623,11 @@ sub eq_set  {
 
 The eq_* family have some caveats.
 
-todo() and skip() are unimplemented as well as no_plan.
+todo() and skip() are unimplemented.
 
+The no_plan feature depends on new Test::Harness feature.  If you're going
+to distribute tests that use no_plan your end-users will have to upgrade
+Test::Harness.
 
 =head1 AUTHOR
 

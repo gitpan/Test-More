@@ -1,5 +1,9 @@
-Revision history for Perl extension Foo.
+Revision history for Perl extension Test::More.
 
-0.01  Wed May 12 12:43:43 1999
-    - original version; created by h2xs 1.19
+0.02  Thu Apr  5 12:48:48 BST 2001
+    - Fixed Makefile.PL to work around MakeMaker bug that 'use's Test::Simple
+      instead of 'require'ing.
+
+0.01  Fri Mar 30 07:49:14 GMT 2001
+    - First working version
 

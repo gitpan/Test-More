@@ -23,10 +23,20 @@ are upgrading from a version older than $LAST_API_CHANGE.
 CHANGE_WARN
 }
 
+# Can't use this because versions of MakeMaker < 5.45 'use' the module
+# instead of 'require'ing and this causes Test::Simple to bitch.
+#    PREREQ_PM       => { Test::Simple => 0.04  },
+if( !eval { require Test::Simple; 1 } ) {
+    warn "Test::Simple version >= 0.04 required but not found\n";
+}
+elsif( my $version = $Test::Simple::VERSION < 0.04 ) {
+    warn "Test::Simple version >= 0.04 requires but $version found\n";
+}
+
+
 WriteMakefile(
     NAME            => $PACKAGE,
     VERSION_FROM    => "lib/$PACKAGE_FILE.pm", # finds $VERSION
-    PREREQ_PM       => { Test::Simple => 0.03  },
     'dist'          => { COMPRESS   => 'gzip -9',
                          SUFFIX     => '.gz',
                          DIST_DEFAULT   => 'all tardist',

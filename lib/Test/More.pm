@@ -8,7 +8,7 @@ require Test::Simple;
 
 require Exporter;
 use vars qw($VERSION @ISA @EXPORT);
-$VERSION = '0.01';
+$VERSION = '0.02';
 @ISA    = qw(Exporter);
 @EXPORT = qw(ok use_ok require_ok
              is isnt like

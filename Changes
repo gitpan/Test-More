@@ -1,5 +1,9 @@
 Revision history for Perl extension Test::More.
 
+0.08  Tue Jul 31 15:01:11 EDT 2001
+    * Test::More now distributed as part of the Test::Simple tarball.
+      There will be no more seperate releases of Test::More.
+
 0.07  Wed Jun 27 03:06:56 EDT 2001
     - VMS and Win32 fixes.  Nothing was actually wrong, but the tests
       had little problems.

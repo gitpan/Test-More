@@ -24,6 +24,19 @@ CHANGE_WARN
 }
 
 
+die <<DEAD;
+************************************************************************
+Test::More is now distributed in the Test::Simple tarball.  This is
+NOT a new version.  There will be no more seperate Test::More
+distributions.
+
+If you want a new version, download the latest Test::Simple tarball.
+Better yet, use the CPAN shell and it'll just figure it out for you.
+
+This installation will now puke and die.
+************************************************************************
+DEAD
+
 WriteMakefile(
     NAME            => $PACKAGE,
     VERSION_FROM    => "lib/$PACKAGE_FILE.pm", # finds $VERSION

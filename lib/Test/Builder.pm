@@ -4,7 +4,7 @@ use 5.008001;
 use strict;
 use warnings;
 
-our $VERSION = '1.301001_049';
+our $VERSION = '1.301001_050';
 $VERSION = eval $VERSION;    ## no critic (BuiltinFunctions::ProhibitStringyEval)
 
 use Test::More::Tools;
@@ -155,6 +155,12 @@ sub finalize {
 
     $ctx = $parent->ctx;
     $ctx->child('pop', $self->{Name});
+}
+
+sub in_subtest {
+    my $self = shift;
+    my $ctx = $self->ctx;
+    return scalar @{$ctx->stream->subtests};
 }
 
 sub parent { $_[0]->{parent} }
@@ -316,11 +322,6 @@ sub _plan_tests {
     return;
 }
 
-sub done_testing {
-    my ($self, $num_tests) = @_;
-    $self->ctx()->done_testing($num_tests);
-}
-
 ################
 # }}} Planning #
 ################
@@ -329,31 +330,68 @@ sub done_testing {
 # {{{ Base Event Producers #
 #############################
 
-my $orig_ok = \&ok;
+my %WARNED;
+our $CTX;
+our %ORIG = (
+    ok   => \&ok,
+    diag => \&diag,
+    note => \&note,
+    done_testing => \&done_testing,
+);
+
+sub WARN_OF_OVERRIDE {
+    my ($sub, $ctx) = @_;
+
+    return unless $ctx->modern;
+    my $old = $ORIG{$sub};
+    # Use package instead of self, we want replaced subs, not subclass overrides.
+    my $new = __PACKAGE__->can($sub);
+
+    return if $new == $old;
+
+    require B;
+    my $o    = B::svref_2object($new);
+    my $gv   = $o->GV;
+    my $st   = $o->START;
+    my $name = $gv->NAME;
+    my $pkg  = $gv->STASH->NAME;
+    my $line = $st->line;
+    my $file = $st->file;
+
+    warn <<"    EOT" unless $WARNED{"$pkg $name $file $line"}++;
+
+*******************************************************************************
+Something monkeypatched Test::Builder::$sub()!
+The new sub is '$pkg\::$name' defined in $file around line $line.
+In the near future monkeypatching Test::Builder::ok() will no longer work
+as expected.
+*******************************************************************************
+    EOT
+}
+
+sub done_testing {
+    my ($self, $num_tests) = @_;
+
+    my $ctx = $CTX || Test::Stream::Context->peek || $self->ctx();
+    WARN_OF_OVERRIDE(done_testing => $ctx);
+
+    my $out = $ctx->stream->done_testing($ctx, $num_tests);
+    return $out;
+}
+
 sub ok {
     my $self = shift;
     my($test, $name) = @_;
 
-    if ($orig_ok != \&ok) {
-        require B;
-        my $name = B::svref_2object(\&ok)->GV->NAME;
-        confess <<"        EOT"
-Something overrode Test::Builder::Ok()!
-The new sub is named: $name
-    As of 1.301001 Test::Builder::Ok is not longer the only place that
-    generates 'ok' results. Overriding Test::Builder::Ok() is almost certainly
-    not what you want to do.
-        EOT
-    }
-
-    my $ctx = $self->ctx();
+    my $ctx = $CTX || Test::Stream::Context->peek || $self->ctx();
+    WARN_OF_OVERRIDE(ok => $ctx);
 
     if ($self->{child}) {
         $self->is_passing(0);
         $ctx->throw("Cannot run test ($name) with active children");
     }
 
-    $ctx->ok($test, $name);
+    $ctx->_unwind_ok($test, $name);
     return $test ? 1 : 0;
 }
 
@@ -389,14 +427,22 @@ sub todo_skip {
 sub diag {
     my $self = shift;
     my $msg = join '', map { defined($_) ? $_ : 'undef' } @_;
-    $self->ctx->diag($msg);
+
+    my $ctx = $CTX || Test::Stream::Context->peek || $self->ctx();
+    WARN_OF_OVERRIDE(diag => $ctx);
+
+    $ctx->_diag($msg);
     return;
 }
 
 sub note {
     my $self = shift;
     my $msg = join '', map { defined($_) ? $_ : 'undef' } @_;
-    $self->ctx->note($msg);
+
+    my $ctx = $CTX || Test::Stream::Context->peek || $self->ctx();
+    WARN_OF_OVERRIDE(note => $ctx);
+
+    $ctx->_note($msg);
 }
 
 #############################
@@ -755,7 +801,7 @@ sub summary {
 # This is just a list of method Test::Builder current does not have that Test::Builder 1.5 does.
 my %TB15_METHODS = map { $_ => 1 } qw{
     _file_and_line _join_message _make_default _my_exit _reset_todo_state
-    _result_to_hash _results _todo_state formatter history in_subtest in_test
+    _result_to_hash _results _todo_state formatter history in_test
     no_change_exit_code post_event post_result set_formatter set_plan test_end
     test_exit_code test_start test_state
 };
